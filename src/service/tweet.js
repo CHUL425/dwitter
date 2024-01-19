@@ -10,7 +10,7 @@ export default class TweetService {
     
     const data = this.http.fetch(`/tweets${query}`, {
       method : 'GET',
-      headers: this.getHeaders(),
+      //headers: this.getHeaders(),
     });
     //console.log('data', data);
 
@@ -21,7 +21,7 @@ export default class TweetService {
   async postTweet(text) {
     return this.http.fetch(`/tweets`, {
       method : 'POST',
-      headers: this.getHeaders(),
+      //headers: this.getHeaders(),
       body   : JSON.stringify({ text, username: 'ellie', name: 'Ellie'}),
     });
   }
@@ -30,7 +30,7 @@ export default class TweetService {
   async updateTweet(tweetId, text) {
     return this.http.fetch(`/tweets/${tweetId}`, {
       method : 'PUT',
-      headers: this.getHeaders(),
+      //headers: this.getHeaders(),
       body   : JSON.stringify({ text }),
     })
   }
@@ -39,16 +39,16 @@ export default class TweetService {
   async deleteTweet(tweetId) {
     return this.http.fetch(`/tweets/${tweetId}`, {
       method : 'DELETE',
-      headers: this.getHeaders(),
+      //headers: this.getHeaders(),
     });
   }
 
-  getHeaders() {
-    const token = localStorage.getItem('token');
-    return {
-      Authorization: `Bearer ${token}`,
-    };
-  }
+  // getHeaders() {
+  //   const token = localStorage.getItem('token');
+  //   return {
+  //     Authorization: `Bearer ${token}`,
+  //   };
+  // }
 
   onSync(callback) {
     return this.socket.onSync('tweets', callback);

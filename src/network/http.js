@@ -1,32 +1,54 @@
+import axios      from 'axios'      ;
+import axiosRetry from 'axios-retry';
+
+
 export default class HttpClient {
-  constructor(baseURL) {
-    this.baseURL = baseURL;
+  constructor(baseURL, authErrorEventBus, getCsrfToken) {
+    this.authErrorEventBus = authErrorEventBus;
+    this.getCsrfToken      = getCsrfToken     ;
+
+    this.client = axios.create({
+      baseURL: baseURL,
+      headers: { 'Content-Type': 'application/json' },
+      withCredentials: true,
+    });
+
+    axiosRetry(this.client, {
+      retries: 5,
+      retryDelay: (retry) => {
+        const delay  = Math.pow(2, retry) * 100   ; // 100, 200, 400, 800, 1600
+        const jitter = delay * 0.1 * Math.random(); // 10, 20, .... 160
+        return delay + jitter;
+      },
+      retryCondition: (err) => err.response.status === 429 || axiosRetry.isNetworkOrIdempotentRequestError(err),
+    });
   }
 
   async fetch(url, options) {
+    const { body, method, headers } = options;
 
-    //console.log(`url:[${url}]`);
-    const res = await fetch(`${this.baseURL}${url}`, {
-      ...options,
+    const req = {
+      url    : url   ,
+      method : method,
       headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
+        ...headers                               ,
+        'dwitter_csrf-token': this.getCsrfToken(),
       },
-    });
+      data: body,
+    };
 
-    let data;
     try {
-      data = await res.json();
-    } catch(error) {
-      console.log('httpClient Error:', error);
-    }
+      const res = await this.client(req);
+      return res.data;
+    } catch (err) {
+      if (err.response) {
+        const data = err.response.data;
+        const msg  = data && data.message ? data.message : 'Something went wrong! 🤪';
 
-    //console.log('res.status:', res.status)
-    if (res.status > 299 || res.status < 200) {
-      const msg = data && data.message ? data.message : 'Something wend Wrong! 👎';
-      throw new Error(msg);
-    }
+        throw new Error(msg);
+      }
 
-    return data;
+      throw new Error('Connection Error');
+    }
   }
 }

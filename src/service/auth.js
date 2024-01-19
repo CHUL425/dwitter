@@ -5,12 +5,6 @@ export default class AuthService {
 
   /**
    * User 등록
-   * @param {*} username 
-   * @param {*} password 
-   * @param {*} name 
-   * @param {*} email 
-   * @param {*} photo 
-   * @returns 
    */
   async signup(username, password, name, email, photo) {
     const data = await this.http.fetch('/auth/signup', {
@@ -18,16 +12,13 @@ export default class AuthService {
       body  : JSON.stringify({ username, password, name, email, photo }),
     });
 
-    localStorage.setItem('token', data.token);
+    //localStorage.setItem('token', data.token);
     
     return data;
   }
 
   /**
    * Login
-   * @param {*} username 
-   * @param {*} password 
-   * @returns 
    */
   async login(username, password) {
     const data = await this.http.fetch('/auth/login', {
@@ -36,25 +27,40 @@ export default class AuthService {
     });
 
     //console.log(`data:[${data.username}], [${data.token}]`);
-    localStorage.setItem('token', data.token);
+    //localStorage.setItem('token', data.token);
 
     return data;
   }
 
   /**
-   * Me
-   * @returns 
+   * logout
    */
-  async me() {
-    const token = localStorage.getItem('token');
-    return this.http.fetch('/auth/me', {
-      method: 'GET',
-      headers: { Authorization: `Bearer ${token}` },
+  async logout() {
+    //localStorage.clear('token');
+
+    return this.http.fetch('/auth/logout', {
+      method: 'POST',
     });
   }
 
-  async logout() {
-    localStorage.clear('token');
+  /**
+   * Me
+   */
+  async me() {
+    //const token = localStorage.getItem('token');
+    return this.http.fetch('/auth/me', {
+      method: 'GET',
+      //headers: { Authorization: `Bearer ${token}` },
+    });
   }
 
+  /**
+   * csrfToken
+   */
+  async csrfToken() {
+    const resp = await this.http.fetch('/auth/csrf-token', {
+      method: 'GET',
+    });
+    return resp.csrfToken;
+  }
 }
